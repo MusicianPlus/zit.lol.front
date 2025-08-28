@@ -1,0 +1,126 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+body {
+  background-color: var(--bs-body-bg);
+}
+
+/* --- Yan Menü Stilleri (Sidebar Styles) --- */
+
+/* Sidebar Başlık ve Arka Plan Stili */
+.offcanvas {
+  background-color: var(--bs-tertiary-bg);
+}
+
+/* Sidebar Başlığı */
+.offcanvas-header {
+  background-color: var(--bs-primary);
+  border-bottom: 2px solid var(--bs-primary-border-subtle);
+  color: var(--bs-dark);
+}
+
+/* Sidebar Kapatma Butonu (Close Button) */
+.offcanvas-header .btn-close {
+  filter: invert(1);
+}
+
+/* Sidebar İçeriği (Body) */
+.offcanvas-body {
+  padding: 1rem;
+  color: var(--bs-body-color);
+}
+
+/* Nav Linkleri (Menü Öğeleri) */
+.offcanvas-body .nav-link {
+  color: var(--bs-body-color);
+  padding: 0.75rem 1rem;
+  border-radius: var(--bs-border-radius);
+  transition: background-color 0.15s ease-in-out;
+}
+
+/* Nav Linkleri üzerine gelince (Hover) */
+.offcanvas-body .nav-link:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary-text-emphasis);
+}
+
+/* Aktif Nav Linki */
+.offcanvas-body .nav-link.active {
+  background-color: var(--bs-primary);
+  color: var(--bs-primary-text-emphasis);
+  font-weight: 500;
+}
+
+/* Menüdeki Kategori Başlıkları */
+.sidebar-heading {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--bs-primary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  font-weight: 600;
+}
+
+/* Koyu Tema (Dark Mode) Desteği */
+[data-bs-theme=dark] .offcanvas-header {
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+  border-bottom-color: var(--bs-border-color);
+}
+
+[data-bs-theme=dark] .offcanvas-body .nav-link:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.2);
+  color: var(--bs-primary-text-emphasis);
+}
+
+[data-bs-theme=dark] .offcanvas-body .nav-link.active {
+  background-color: var(--bs-primary);
+  color: var(--bs-light);
+}
+
+[data-bs-theme=dark] .sidebar-heading {
+  color: var(--bs-tertiary-color);
+}
