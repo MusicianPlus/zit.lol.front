@@ -10,6 +10,7 @@ import StockManager from './StockManager';
 import ProductionPlanner from './ProductionPlanner';
 import PcbMapper from './PcbMapper';
 import Sidebar from './Sidebar';
+import logo from '../assets/logo_transparent.png';
 
 const MainLayout = ({ handleLogout }) => {
     // Yan menünün açık/kapalı durumu, varsayılan olarak açık başlar
@@ -21,6 +22,12 @@ const MainLayout = ({ handleLogout }) => {
     // Anasayfa bileşeni (Home) artık MainLayout içinde tanımlanıyor
     const Home = () => (
         <div className="text-center">
+                <img
+                    src={logo}
+                    alt="Zit lol Logo"
+                    className="img-fluid"
+                    style={{ maxWidth: '150px' }} // Logoyu daha küçük tutmak için isteğe bağlı stil
+                />
             <h1>Hoş geldin!</h1>
             <p>Sol üstteki menüden işlem seçerek uygulamayı kullanmaya başlayabilirsin.</p>
             {/* Çıkış butonu */}
