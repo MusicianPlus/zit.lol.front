@@ -10,7 +10,7 @@ import StockManager from './StockManager';
 import ProductionPlanner from './ProductionPlanner';
 import PcbMapper from './PcbMapper';
 import Sidebar from './Sidebar';
-import logo from '../assets/logo_transparent.png';
+import logo from '../assets/logo.png';
 
 const MainLayout = ({ handleLogout }) => {
     // Yan menünün açık/kapalı durumu, varsayılan olarak açık başlar
