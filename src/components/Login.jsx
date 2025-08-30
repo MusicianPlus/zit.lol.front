@@ -22,6 +22,8 @@ const Login = ({ handleLogin }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+
+                credentials: 'include', // Include credentials
                 body: JSON.stringify({ username, password, rememberMe }), // "beni hatırla" durumunu da gönder
             });
 
