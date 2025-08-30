@@ -27,7 +27,6 @@ const Login = () => {
                 credentials: 'include', // Include credentials
                 body: JSON.stringify({ username, password, rememberMe }), // "beni hatırla" durumunu da gönder
             });
->>>>>>> 374c2d2fde77d1e94f3ed69e2840cdd7f59f226f
 
         if (result.success) {
             navigate('/');
