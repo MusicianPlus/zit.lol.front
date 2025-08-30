@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
+<<<<<<< HEAD:src/components/Login.tsx
 import { useAuth } from '../context/AuthContext.tsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -12,11 +13,23 @@ const Login = () => {
     const [error, setError] = useState<string>('');
     const navigate = useNavigate();
     const { handleLogin } = useAuth();
+=======
+import { useAuth } from '../context/AuthContext';
+
+const Login = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { login } = useAuth();
+>>>>>>> 8b6b7e79a6ab99acbf35b8fbd4bee9a2ecc91f3d:src/components/Login.jsx
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
+        const result = await login(username, password, rememberMe);
         try {
             // Backend'deki yeni API uç noktasına istek gönder
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -29,6 +42,7 @@ const Login = () => {
                 body: JSON.stringify({ username, password, rememberMe }), // "beni hatırla" durumunu da gönder
             });
 
+<<<<<<< HEAD:src/components/Login.tsx
             const data = await response.json();
 
             if (response.ok) {
@@ -41,6 +55,12 @@ const Login = () => {
         } catch (err: any) {
             console.error('Giriş hatası:', err);
             setError('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.');
+=======
+        if (result.success) {
+            navigate('/');
+        } else {
+            setError(result.message);
+>>>>>>> 8b6b7e79a6ab99acbf35b8fbd4bee9a2ecc91f3d:src/components/Login.jsx
         }
     };
 
@@ -49,7 +69,7 @@ const Login = () => {
             <Card className="p-4 shadow" style={{ width: '400px' }}>
                 <Card.Body>
                     <h2 className="text-center mb-4">Giriş Yap</h2>
-                    {error && <Alert variant="danger">{error}</Alert>} {/* Hata mesajını göster */}
+                    {error && <Alert variant="danger">{error}</Alert>}
                     <Form onSubmit={handleSubmit}>
                         <Form.Group id="username" className="mb-3">
                             <Form.Label>Kullanıcı Adı</Form.Label>
@@ -71,7 +91,6 @@ const Login = () => {
                             />
                         </Form.Group>
                         
-                        {/* "Beni Hatırla" Checkbox'ı */}
                         <Form.Group id="remember-me" className="mb-3">
                             <Form.Check 
                                 type="checkbox" 
