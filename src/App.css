@@ -1,4 +1,7 @@
 #root {
+  --lime-accent: #84CC16;
+  --bs-primary: var(--lime-accent);
+  --bs-primary-rgb: 132, 204, 22;
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -37,6 +40,8 @@
 
 .card {
   padding: 2em;
+  border-radius: 0.75rem; /* More rounded corners */
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important; /* More pronounced shadow */
 }
 
 .read-the-docs {

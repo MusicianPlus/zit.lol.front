@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Container, Card, Form, Button, Table, Spinner, Alert } from 'react-bootstrap';
+import { PcbService, Pcb } from '../../api/pcb'; // Import PcbService and Pcb interface
+import { ProductionService, PlanDataItem } from '../../api/production'; // Import ProductionService and PlanDataItem
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+interface Status {
+    message: string;
+    variant: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark';
+}
 
-const ProductionPlanner = () => {
-    const [pcbs, setPcbs] = useState([]);
-    const [selectedPcb, setSelectedPcb] = useState('');
-    const [planData, setPlanData] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState(null);
-
-    const API_URLS = {
-        fetchPcbs: `${API_BASE_URL}/api/pcb`,
-        fetchFullPlan: `${API_BASE_URL}/api/production/full-plan/`
-    };
+const ProductionPlanner: React.FC = () => {
+    const [pcbs, setPcbs] = useState<Pcb[]>([]);
+    const [selectedPcb, setSelectedPcb] = useState<string>('');
+    const [planData, setPlanData] = useState<PlanDataItem[] | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [status, setStatus] = useState<Status | null>(null);
 
     useEffect(() => {
         const fetchPcbs = async () => {
             try {
-                const res = await axios.get(API_URLS.fetchPcbs);
-                setPcbs(res.data);
-            } catch (err) {
+                const res = await PcbService.getAllPcbs(); // Use PcbService
+                setPcbs(res);
+            } catch (err: any) {
                 setStatus({ message: 'PCB listesi alınırken bir hata oluştu.', variant: 'danger' });
             }
         };
@@ -39,10 +38,10 @@ const ProductionPlanner = () => {
         setPlanData(null);
 
         try {
-            const res = await axios.get(`${API_URLS.fetchFullPlan}${selectedPcb}`);
-            setPlanData(res.data.plan);
+            const res = await ProductionService.getFullPlan(selectedPcb); // Use ProductionService
+            setPlanData(res.plan);
             setStatus({ message: 'Üretim planı başarıyla oluşturuldu.', variant: 'success' });
-        } catch (err) {
+        } catch (err: any) {
             setStatus({ message: 'Plan oluşturulurken hata: ' + (err.response?.data?.message || err.message), variant: 'danger' });
             console.error(err);
         } finally {
@@ -50,8 +49,8 @@ const ProductionPlanner = () => {
         }
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
+    const getStatusColor = (statusText: 'Yeterli' | 'Yetersiz' | 'Eşleştirilmemiş'): string => {
+        switch (statusText) {
             case 'Yeterli':
                 return 'success';
             case 'Yetersiz':
@@ -78,7 +77,7 @@ const ProductionPlanner = () => {
                         <Form.Label className="fw-bold">PCB Seçin</Form.Label>
                         <Form.Select
                             value={selectedPcb}
-                            onChange={(e) => setSelectedPcb(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedPcb(e.target.value)}
                         >
                             <option value="">-- Bir PCB Seçin --</option>
                             {pcbs.map(pcb => (

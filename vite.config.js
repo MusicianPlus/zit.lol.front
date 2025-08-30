@@ -19,5 +19,10 @@ export default defineConfig(({ mode }) => {
     server: {
       allowedHosts: ['zit.lol', 'www.zit.lol', 'api.zit.lol']
     },
+    resolve: {
+      alias: {
+        '@': '/src',
+      },
+    },
   }
 })

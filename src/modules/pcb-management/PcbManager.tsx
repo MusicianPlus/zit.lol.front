@@ -1,39 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Card, Form, Button, Table, Spinner, Alert, Row, Col, Tab, Tabs } from 'react-bootstrap';
+import { Container, Card, Form, Button, Row, Col, Tab, Tabs } from 'react-bootstrap';
+import StatusAlert from '@/components/common/StatusAlert.tsx';
+import LoadingSpinner from '@/components/common/LoadingSpinner.tsx';
+import FormGroupSelect from '@/components/common/FormGroupSelect.tsx';
+import PaginatedTable from '@/components/common/PaginatedTable.tsx';
+import EmptyState from './common/EmptyState.tsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const PcbManager = () => {
-    const [pcbs, setPcbs] = useState([]);
-    const [allComponents, setAllComponents] = useState([]);
-    const [selectedPcbId, setSelectedPcbId] = useState('');
-    const [bomFile, setBomFile] = useState(null);
-    const [bomData, setBomData] = useState([]);
-    const [csvHeaders, setCsvHeaders] = useState([]);
-    const [columnMapping, setColumnMapping] = useState({
+interface Pcb {
+    pcb_id: string;
+    pcb_name: string;
+}
+
+interface ComponentItem {
+    component_id: string;
+    manufacturer_part_number: string;
+    component_name: string;
+}
+
+interface BomItem {
+    [key: string]: string;
+}
+
+interface ColumnMapping {
+    manufacturer_part_number: string;
+    designator: string;
+}
+
+interface GroupedBomItem {
+    component_id: string | null;
+    manufacturer_part_number: string;
+    quantity: number;
+    designators: string[];
+}
+
+const PcbManager: React.FC = () => {
+    const [pcbs, setPcbs] = useState<Pcb[]>([]);
+    const [allComponents, setAllComponents] = useState<ComponentItem[]>([]);
+    const [selectedPcbId, setSelectedPcbId] = useState<string>('');
+    const [bomFile, setBomFile] = useState<File | null>(null);
+    const [bomData, setBomData] = useState<BomItem[]>([]);
+    const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+    const [columnMapping, setColumnMapping] = useState<ColumnMapping>({
         manufacturer_part_number: '',
         designator: ''
     });
-    const [componentSelections, setComponentSelections] = useState({});
-    const [status, setStatus] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [componentSelections, setComponentSelections] = useState<{[key: number]: string}>({});
+    const [status, setStatus] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
 
-    const [activeTab, setActiveTab] = useState('pcbSelect');
+    const [activeTab, setActiveTab] = useState<string>('pcbSelect');
 
     const PCB_API_URL = `${API_BASE_URL}/api/pcb`;
     const COMPONENTS_API_URL = `${API_BASE_URL}/api/components`;
+
+    // Sayfalama mantığı
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [itemsPerPage] = useState<number>(20);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = bomData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(bomData.length / itemsPerPage);
 
     // PCB'leri ve tüm bileşenleri yükle
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const pcbRes = await axios.get(PCB_API_URL);
+                const pcbRes = await axios.get<Pcb[]>(PCB_API_URL);
                 setPcbs(pcbRes.data);
-                const componentsRes = await axios.get(`${COMPONENTS_API_URL}/all`);
+                const componentsRes = await axios.get<ComponentItem[]>(`${COMPONENTS_API_URL}/all`);
                 setAllComponents(componentsRes.data);
-            } catch (err) {
+            } catch (err: any) {
                 setStatus('Veriler yüklenirken bir hata oluştu.');
                 console.error(err);
             } finally {
@@ -46,7 +86,7 @@ const PcbManager = () => {
     // BOM yüklendiğinde ve sütun eşleşmeleri yapıldığında otomatik eşleştirme yap
     useEffect(() => {
         if (bomData.length > 0 && columnMapping.manufacturer_part_number && allComponents.length > 0) {
-            const newSelections = {};
+            const newSelections: {[key: number]: string} = {};
             bomData.forEach((bomItem, index) => {
                 const bomMpn = bomItem[columnMapping.manufacturer_part_number];
                 // Envanterdeki bileşenlerde BOM MPN'sini ara
@@ -63,7 +103,7 @@ const PcbManager = () => {
     }, [bomData, columnMapping.manufacturer_part_number, allComponents]); // Bu bağımlılıklar değiştiğinde çalışır
 
 
-    const handlePcbSelect = (e) => {
+    const handlePcbSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const pcbId = e.target.value;
         setSelectedPcbId(pcbId);
         if (pcbId) {
@@ -75,12 +115,14 @@ const PcbManager = () => {
         }
     };
 
-    const handleFileChange = (e) => {
-        setBomFile(e.target.files[0]);
-        setStatus('');
-        setBomData([]);
-        setCsvHeaders([]);
-        setComponentSelections({});
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setBomFile(e.target.files[0]);
+            setStatus('');
+            setBomData([]);
+            setCsvHeaders([]);
+            setComponentSelections({});
+        }
     };
 
     const handleBomUpload = async () => {
@@ -100,7 +142,7 @@ const PcbManager = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(`${PCB_API_URL}/upload-bom`, formData, {
+            const res = await axios.post<{ bomData: BomItem[] }>(`${PCB_API_URL}/upload-bom`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
 
@@ -113,14 +155,15 @@ const PcbManager = () => {
             } else {
                 setStatus('Yüklenen dosyada veri bulunamadı.');
             }
-        } catch (err) {
+        } catch (err: any) {
             setStatus('Yükleme hatası: ' + (err.response?.data?.message || err.message));
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleColumnMappingChange = (e) => {
+    const handleColumnMappingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
         const newMapping = { ...columnMapping, [name]: value };
         setColumnMapping(newMapping);
@@ -130,7 +173,7 @@ const PcbManager = () => {
         }
     };
 
-    const handleComponentSelectChange = (e, index) => {
+    const handleComponentSelectChange = (e: React.ChangeEvent<HTMLSelectElement>, index: number) => {
         const { value } = e.target;
         setComponentSelections(prev => ({ ...prev, [index]: value }));
     };
@@ -142,7 +185,7 @@ const PcbManager = () => {
         }
 
         // Bileşenleri MPN'ye göre grupla ve adetlerini say
-        const groupedBomData = bomData.reduce((acc, item, index) => {
+        const groupedBomData = bomData.reduce((acc: { [key: string]: GroupedBomItem }, item: BomItem, index: number) => {
             const mpn = item[columnMapping.manufacturer_part_number];
             const designator = item[columnMapping.designator];
             const componentId = componentSelections[index] || null;
@@ -163,7 +206,7 @@ const PcbManager = () => {
         }, {});
 
         // Gruplanmış veriyi API'ye göndereceğimiz formata dönüştür
-        const finalBomData = Object.values(groupedBomData).map(item => ({
+        const finalBomData: GroupedBomItem[] = Object.values(groupedBomData).map(item => ({
             component_id: item.component_id,
             manufacturer_part_number: item.manufacturer_part_number,
             quantity: item.quantity,
@@ -187,25 +230,42 @@ const PcbManager = () => {
                 bomData: finalBomData
             });
             setStatus('BOM verileri başarıyla kaydedildi!');
-        } catch (err) {
+        } catch (err: any) {
             setStatus('Kaydetme hatası: ' + (err.response?.data?.message || err.message));
-            console.error('BOM kaydetme hatası:', err);
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
     
-    // Sayfalama mantığı
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(20);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = bomData.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(bomData.length / itemsPerPage);
+    const tableHeaders = [
+        { label: 'Designator', key: 'designator' },
+        { label: 'Parça No (BOM)', key: 'manufacturer_part_number' },
+        { label: 'Envanterdeki Komponent', key: 'component_selection' }
+    ];
 
-    const paginatePrev = () => setCurrentPage(prev => Math.max(1, prev - 1));
-    const paginateNext = () => setCurrentPage(prev => Math.min(totalPages, prev + 1));
-
+    const renderBomRow = (item: BomItem, index: number) => {
+        const actualIndex = indexOfFirstItem + index; // Calculate actual index for componentSelections
+        return (
+            <tr key={actualIndex}>
+                <td className="align-middle">{item[columnMapping.designator]}</td>
+                <td className="align-middle">{item[columnMapping.manufacturer_part_number]}</td>
+                <td className="align-middle">
+                    <Form.Select 
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleComponentSelectChange(e, actualIndex)} 
+                        value={componentSelections[actualIndex] || ''}
+                    >
+                        <option value="">-- Eşleştir --</option>
+                        {allComponents.map(comp => (
+                            <option key={comp.component_id} value={comp.component_id}>
+                                {comp.manufacturer_part_number} - {comp.component_name}
+                            </option>
+                        ))}
+                    </Form.Select>
+                </td>
+            </tr>
+        );
+    };
 
     return (
         <Container className="my-4">
@@ -214,30 +274,23 @@ const PcbManager = () => {
                     <h5 className="mb-0 text-primary fw-bold">PCB BOM Yönetimi</h5>
                 </Card.Header>
                 <Card.Body>
-                    {status && (
-                        <Alert variant={status.includes('hata') ? 'danger' : 'success'}>
-                            {status}
-                        </Alert>
-                    )}
+                    <StatusAlert status={status} />
 
                     <Tabs
                         activeKey={activeTab}
-                        onSelect={(k) => setActiveTab(k)}
+                        onSelect={(k: string) => setActiveTab(k)}
                         id="uncontrolled-tab-example"
                         className="mb-3"
                     >
                         <Tab eventKey="pcbSelect" title="1. PCB Seçin">
-                            <Form.Group className="mb-4">
-                                <Form.Label className="fw-bold">Bir PCB Seçin</Form.Label>
-                                <Form.Select onChange={handlePcbSelect} value={selectedPcbId}>
-                                    <option value="">-- PCB Seç --</option>
-                                    {pcbs.map(pcb => (
-                                        <option key={pcb.pcb_id} value={pcb.pcb_id}>
-                                            {pcb.pcb_name}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </Form.Group>
+                            <FormGroupSelect
+                                label="Bir PCB Seçin"
+                                name="selectedPcbId"
+                                value={selectedPcbId}
+                                onChange={handlePcbSelect}
+                                options={pcbs.map(pcb => ({ value: pcb.pcb_id, label: pcb.pcb_name }))}
+                                placeholder="-- PCB Seç --"
+                            />
                         </Tab>
 
                         <Tab eventKey="bomUpload" title="2. BOM Yükle" disabled={!selectedPcbId}>
@@ -256,7 +309,7 @@ const PcbManager = () => {
                                         disabled={loading || !bomFile}
                                         variant="primary"
                                     >
-                                        {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Yükle'}
+                                        <LoadingSpinner show={loading} text="Yükleniyor..." /> Yükle
                                     </Button>
                                 </div>
                             </Form.Group>
@@ -267,95 +320,45 @@ const PcbManager = () => {
                                 <Form.Label className="fw-bold">Sütunları Eşleştir</Form.Label>
                                 <Row>
                                     <Col md={6}>
-                                        <Form.Label>Parça Numarası (MPN):</Form.Label>
-                                        <Form.Select
+                                        <FormGroupSelect
+                                            label="Parça Numarası (MPN):"
                                             name="manufacturer_part_number"
                                             value={columnMapping.manufacturer_part_number}
                                             onChange={handleColumnMappingChange}
-                                        >
-                                            <option value="">-- Seç --</option>
-                                            {csvHeaders.map(header => (
-                                                <option key={header} value={header}>{header}</option>
-                                            ))}
-                                        </Form.Select>
+                                            options={csvHeaders.map(header => ({ value: header, label: header }))}
+                                            placeholder="-- Seç --"
+                                        />
                                     </Col>
                                     <Col md={6}>
-                                        <Form.Label>Designator:</Form.Label>
-                                        <Form.Select
+                                        <FormGroupSelect
+                                            label="Designator:"
                                             name="designator"
                                             value={columnMapping.designator}
                                             onChange={handleColumnMappingChange}
-                                        >
-                                            <option value="">-- Seç --</option>
-                                            {csvHeaders.map(header => (
-                                                <option key={header} value={header}>{header}</option>
-                                            ))}
-                                        </Form.Select>
+                                            options={csvHeaders.map(header => ({ value: header, label: header }))}
+                                            placeholder="-- Seç --"
+                                        />
                                     </Col>
                                 </Row>
                             </Form.Group>
                         </Tab>
 
                         <Tab eventKey="componentMatching" title="4. Bileşenleri Eşleştir" disabled={!columnMapping.manufacturer_part_number || !columnMapping.designator}>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h5 className="mb-0 text-primary fw-bold">Bileşenleri Eşleştir</h5>
-                                <div className="d-flex">
-                                    <Button
-                                        variant="outline-primary"
-                                        onClick={paginatePrev}
-                                        disabled={currentPage === 1}
-                                        className="me-2"
-                                    >
-                                        « Önceki
-                                    </Button>
-                                    <Button
-                                        variant="outline-primary"
-                                        onClick={paginateNext}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        Sonraki »
-                                    </Button>
-                                </div>
-                            </div>
-                            <div style={{ maxHeight: '500px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '0.25rem', padding: '1rem', marginBottom: '1rem' }}>
-                                <Table striped bordered hover className="m-0">
-                                    <thead>
-                                        <tr>
-                                            <th className="align-middle">Designator</th>
-                                            <th className="align-middle">Parça No (BOM)</th>
-                                            <th className="align-middle">Envanterdeki Komponent</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {currentItems.map((item, index) => (
-                                            <tr key={indexOfFirstItem + index}>
-                                                <td className="align-middle">{item[columnMapping.designator]}</td>
-                                                <td className="align-middle">{item[columnMapping.manufacturer_part_number]}</td>
-                                                <td className="align-middle">
-                                                    <Form.Select 
-                                                        onChange={(e) => handleComponentSelectChange(e, indexOfFirstItem + index)} 
-                                                        value={componentSelections[indexOfFirstItem + index] || ''}
-                                                    >
-                                                        <option value="">-- Eşleştir --</option>
-                                                        {allComponents.map(comp => (
-                                                            <option key={comp.component_id} value={comp.component_id}>
-                                                                {comp.manufacturer_part_number} - {comp.component_name}
-                                                            </option>
-                                                        ))}
-                                                    </Form.Select>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </div>
+                            <PaginatedTable
+                                headers={tableHeaders}
+                                data={currentItems}
+                                renderRow={renderBomRow}
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                            />
                             <div className="d-grid mt-4">
                                 <Button
                                     variant="success"
                                     onClick={handleFinalizeMapping}
                                     disabled={loading}
                                 >
-                                    {loading ? <Spinner animation="border" size="sm" /> : 'Eşleştirmeyi Onayla ve BOM\'u Kaydet'}
+                                    <LoadingSpinner show={loading} text="Kaydediliyor..." /> Eşleştirmeyi Onayla ve BOM'u Kaydet
                                 </Button>
                             </div>
                         </Tab>

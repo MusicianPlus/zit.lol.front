@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Container, Card, Form, Button, Table, Spinner, Alert, Tabs, Tab } from 'react-bootstrap';
+import { PcbService, Pcb, Component, BomItem, UpdateBomMappingPayload } from '../../api/pcb'; // Import PcbService and interfaces
+import axios from 'axios'; // Keep axios for now for allComponents fetch
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const PcbMapper = () => {
-    const [pcbs, setPcbs] = useState([]);
-    const [allComponents, setAllComponents] = useState([]);
-    const [selectedPcbId, setSelectedPcbId] = useState('');
-    const [bomData, setBomData] = useState([]);
-    const [componentSelections, setComponentSelections] = useState({});
-    const [status, setStatus] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState('pcbSelect');
+interface ComponentSelections {
+    [key: string]: string; // Maps component_in_pcb_id to component_id
+}
 
-    const PCB_API_URL = `${API_BASE_URL}/api/pcb`;
-    const COMPONENTS_API_URL = `${API_BASE_URL}/api/components`;
+const PcbMapper: React.FC = () => {
+    const [pcbs, setPcbs] = useState<Pcb[]>([]);
+    const [allComponents, setAllComponents] = useState<Component[]>([]);
+    const [selectedPcbId, setSelectedPcbId] = useState<string>('');
+    const [bomData, setBomData] = useState<BomItem[]>([]);
+    const [componentSelections, setComponentSelections] = useState<ComponentSelections>({});
+    const [status, setStatus] = useState<string>(''); // Status message
+    const [loading, setLoading] = useState<boolean>(false);
+    const [activeTab, setActiveTab] = useState<string>('pcbSelect');
 
     // PCB'leri ve tüm bileşenleri yükle
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const pcbRes = await axios.get(PCB_API_URL);
-                setPcbs(pcbRes.data);
-                const componentsRes = await axios.get(`${COMPONENTS_API_URL}/all`);
+                const pcbRes = await PcbService.getAllPcbs(); // Use PcbService
+                setPcbs(pcbRes);
+                // Assuming there's a ComponentService or similar to fetch all components
+                // For now, I'll assume PcbService can fetch all components or it's a separate service
+                // Based on previous CsvUploader, it was /api/components/all, so let's create a ComponentService
+                // For now, I'll keep the direct axios call for components until ComponentService is created.
+                const componentsRes = await axios.get<Component[]>(`${API_BASE_URL}/api/components/all`);
                 setAllComponents(componentsRes.data);
-            } catch (err) {
+            } catch (err: any) {
                 setStatus('Veriler yüklenirken bir hata oluştu.');
                 console.error(err);
             } finally {
@@ -46,17 +52,16 @@ const PcbMapper = () => {
         }
     }, [selectedPcbId]);
 
-    const fetchExistingBomData = async (pcbId) => {
+    const fetchExistingBomData = async (pcbId: string) => {
         setLoading(true);
         setStatus('PCB BOM verileri yükleniyor...');
         setBomData([]);
         setComponentSelections({});
         try {
-            const res = await axios.get(`${PCB_API_URL}/${pcbId}/mapped-bom`);
-            const fetchedBomData = res.data;
+            const fetchedBomData = await PcbService.getMappedBom(pcbId); // Use PcbService
             setBomData(fetchedBomData);
             
-            const newSelections = {};
+            const newSelections: ComponentSelections = {};
             fetchedBomData.forEach((item) => {
                 if (item.component_id) {
                     newSelections[item.component_in_pcb_id] = item.component_id;
@@ -74,19 +79,19 @@ const PcbMapper = () => {
             setStatus('BOM verileri başarıyla yüklendi. Şimdi eşleştirme yapabilirsiniz.');
             setActiveTab('componentMatching');
             
-        } catch (err) {
+        } catch (err: any) {
             setStatus('Mevcut BOM verisi alınırken hata: ' + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }
     };
 
-    const handlePcbSelect = (e) => {
+    const handlePcbSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const pcbId = e.target.value;
         setSelectedPcbId(pcbId);
     };
 
-    const handleComponentSelectChange = (e, bomItemId) => {
+    const handleComponentSelectChange = (e: React.ChangeEvent<HTMLSelectElement>, bomItemId: string) => {
         const { value } = e.target;
         setComponentSelections(prevSelections => ({
             ...prevSelections,
@@ -95,7 +100,7 @@ const PcbMapper = () => {
     };
 
     const handleFinalizeMapping = async () => {
-        const updates = bomData.map(item => {
+        const updates: UpdateBomMappingPayload['updates'] = bomData.map(item => {
             const selectedComponentId = componentSelections[item.component_in_pcb_id] || null;
             return {
                 component_in_pcb_id: item.component_in_pcb_id,
@@ -107,12 +112,9 @@ const PcbMapper = () => {
         setLoading(true);
 
         try {
-            await axios.put(`${PCB_API_URL}/update-bom-mapping`, {
-                pcbId: selectedPcbId,
-                updates: updates
-            });
+            await PcbService.updateBomMapping({ pcbId: selectedPcbId, updates: updates }); // Use PcbService
             setStatus('Eşleştirmeler başarıyla güncellendi!');
-        } catch (err) {
+        } catch (err: any) {
             setStatus('Eşleştirme hatası: ' + (err.response?.data?.message || err.message));
             console.error('Eşleştirme hatası:', err);
         } finally {
@@ -133,7 +135,7 @@ const PcbMapper = () => {
                         </Alert>
                     )}
 
-                    <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} id="mapper-tabs" className="mb-3">
+                    <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k as string)} id="mapper-tabs" className="mb-3">
                         <Tab eventKey="pcbSelect" title="1. PCB Seçin">
                             <Form.Group className="mb-4">
                                 <Form.Label className="fw-bold">Bir PCB Seçin</Form.Label>
@@ -164,7 +166,7 @@ const PcbMapper = () => {
                                                 <td>{item.bom_mpn}</td>
                                                 <td>
                                                     <Form.Select 
-                                                        onChange={(e) => handleComponentSelectChange(e, item.component_in_pcb_id)} 
+                                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleComponentSelectChange(e, item.component_in_pcb_id)} 
                                                         value={componentSelections[item.component_in_pcb_id] ?? ''}
                                                     >
                                                         <option value="">-- Eşleştir --</option>

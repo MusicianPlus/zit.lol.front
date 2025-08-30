@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
+import { useAuth } from '../context/AuthContext.tsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const Login = ({ handleLogin }) => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState(false); // Yeni state: "beni hatırla"
-    const [error, setError] = useState('');
+const Login = () => {
+    const [username, setUsername] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [rememberMe, setRememberMe] = useState<boolean>(false); // Yeni state: "beni hatırla"
+    const [error, setError] = useState<string>('');
     const navigate = useNavigate();
+    const { handleLogin } = useAuth();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
@@ -36,7 +38,7 @@ const Login = ({ handleLogin }) => {
             } else {
                 setError(data.message || 'Giriş başarısız oldu.');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Giriş hatası:', err);
             setError('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.');
         }

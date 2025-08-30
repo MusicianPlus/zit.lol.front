@@ -1,11 +1,19 @@
 import React from 'react';
 import { Nav, Offcanvas } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 // Logo dosyasını import etmeyi unutmayın
 import logo from '../assets/logo_transparent.png'; // components'tan src'ye çık, sonra assets'e gir
 
-const Sidebar = ({ show, handleClose }) => {
+interface SidebarProps {
+    show: boolean;
+    handleClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ show, handleClose }) => {
+    const { t } = useTranslation(); // Initialize useTranslation
+
     return (
         <Offcanvas show={show} onHide={handleClose} placement="start" scroll={true}>
             <Offcanvas.Header closeButton>
@@ -20,33 +28,33 @@ const Sidebar = ({ show, handleClose }) => {
             <Offcanvas.Body>
                 <Nav className="flex-column">
                     <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
-                        <span>PCB Yönetimi</span>
+                        <span>{t('pcb_management')}</span> {/* Translated */}
                     </h6>
                     <Nav.Link as={Link} to="/pcb-creator" onClick={handleClose}>
-                        Yeni PCB Oluştur
+                        {t('create_new_pcb')} {/* Translated */}
                     </Nav.Link>
                     <Nav.Link as={Link} to="/pcb-manager" onClick={handleClose}>
-                        PCB BOM Yönetimi
+                        {t('pcb_bom_management')} {/* Translated */}
                     </Nav.Link>
                     <Nav.Link as={Link} to="/pcb-mapper" onClick={handleClose}>
-                        PCB Eşleştirme
+                        {t('pcb_mapping')} {/* Translated */}
                     </Nav.Link>
 
                     <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
-                        <span>Envanter</span>
+                        <span>{t('inventory')}</span> {/* Translated */}
                     </h6>
                     <Nav.Link as={Link} to="/stock-manager" onClick={handleClose}>
-                        Envanter Yönetimi
+                        {t('inventory_management')} {/* Translated */}
                     </Nav.Link>
                     <Nav.Link as={Link} to="/csv-uploader" onClick={handleClose}>
-                        CSV ile Komponent Yükle
+                        {t('upload_components_csv')} {/* Translated */}
                     </Nav.Link>
 
                     <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
-                        <span>Üretim</span>
+                        <span>{t('production')}</span> {/* Translated */}
                     </h6>
                     <Nav.Link as={Link} to="/production-planner" onClick={handleClose}>
-                        Üretim Planlama
+                        {t('production_planning')} {/* Translated */}
                     </Nav.Link>
                 </Nav>
             </Offcanvas.Body>
