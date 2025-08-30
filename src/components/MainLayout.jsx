@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
 import { Container, Navbar, Button } from 'react-bootstrap';
+import { useAuth } from '../context/AuthContext';
+import routes from '../routes';
 
-// MainLayout'un kendi içindeki bileşen import'ları
-import PcbManager from './PcbManager';
-import CsvUploader from './CsvUploader';
-import PcbCreator from './PcbCreator';
-import StockManager from './StockManager';
-import ProductionPlanner from './ProductionPlanner';
-import PcbMapper from './PcbMapper';
 import Sidebar from './Sidebar';
 import logo from '../assets/logo.png';
 
-const MainLayout = ({ handleLogout }) => {
-    // Yan menünün açık/kapalı durumu, varsayılan olarak açık başlar
+const MainLayout = () => {
     const [showSidebar, setShowSidebar] = useState(true);
+    const { logout } = useAuth();
+    const navigate = useNavigate();
 
     const handleShowSidebar = () => setShowSidebar(true);
     const handleCloseSidebar = () => setShowSidebar(false);
 
-    // Anasayfa bileşeni (Home) artık MainLayout içinde tanımlanıyor
+    const handleLogout = async () => {
+        const result = await logout();
+        if (result.success) {
+            navigate('/login');
+        }
+    };
+
     const Home = () => (
         <div className="text-center">
                 <img
@@ -30,7 +32,6 @@ const MainLayout = ({ handleLogout }) => {
                 />
             <h1>Hoş geldin!</h1>
             <p>Sol üstteki menüden işlem seçerek uygulamayı kullanmaya başlayabilirsin.</p>
-            {/* Çıkış butonu */}
             <Button variant="danger" onClick={handleLogout} className="mt-3">
                 Çıkış Yap
             </Button>
@@ -39,32 +40,27 @@ const MainLayout = ({ handleLogout }) => {
 
     return (
         <>
-            {/* Navbar - Sadece menü butonu ve marka adı */}
             <Navbar fixed="top" className="bg-primary navbar-dark shadow-sm">
                 <Container fluid>
-                    {/* Tek menü butonu */}
                     <Button variant="primary" onClick={handleShowSidebar} className="me-2">
-                        <i className="bi bi-list"></i> {/* Bootstrap Icons kullanılıyorsa */}
+                        <i className="bi bi-list"></i>
                     </Button>
                     <Navbar.Brand as={Link} to="/">Zit Base</Navbar.Brand>
                 </Container>
             </Navbar>
 
-            {/* Yan menü bileşeni */}
             <Sidebar show={showSidebar} handleClose={handleCloseSidebar} />
 
-            {/* Ana İçerik Alanı */}
             <div className="main-content" style={{ marginTop: '5rem' }}>
                 <Container>
                     <Routes>
-                        {/* Tüm ana uygulama rotaları */}
-                        <Route path="/" element={<Home />} />
-                        <Route path="/pcb-manager" element={<PcbManager />} />
-                        <Route path="/pcb-mapper" element={<PcbMapper />} />
-                        <Route path="/csv-uploader" element={<CsvUploader />} />
-                        <Route path="/pcb-creator" element={<PcbCreator />} />
-                        <Route path="/stock-manager" element={<StockManager />} />
-                        <Route path="/production-planner" element={<ProductionPlanner />} />
+                        {routes.find(route => route.path === '/').children.map((childRoute, index) => (
+                            <Route
+                                key={index}
+                                path={childRoute.path}
+                                element={<childRoute.component />}
+                            />
+                        ))}
                     </Routes>
                 </Container>
             </div>
