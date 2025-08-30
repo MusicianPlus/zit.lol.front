@@ -16,6 +16,18 @@ const Login = () => {
         setError('');
 
         const result = await login(username, password, rememberMe);
+        try {
+            // Backend'deki yeni API uç noktasına istek gönder
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+
+                credentials: 'include', // Include credentials
+                body: JSON.stringify({ username, password, rememberMe }), // "beni hatırla" durumunu da gönder
+            });
+>>>>>>> 374c2d2fde77d1e94f3ed69e2840cdd7f59f226f
 
         if (result.success) {
             navigate('/');
