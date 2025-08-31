@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Alert, Table, Spinner, Tabs, Tab } from 'react-bootstrap';
-import { ImporterService } from '@/api/importer.ts'; // Import the new service
+import { ImporterService } from '../../api/importer'; // Import the new service
 import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 // Define interfaces for better type safety
@@ -118,7 +118,7 @@ const CsvUploader: React.FC = () => {
     };
 
     return (
-        <Container className="my-4">
+        <>
                     {status && (
                         <Alert 
                             variant={status.variant} 
@@ -129,11 +129,11 @@ const CsvUploader: React.FC = () => {
                             {status.message}
                         </Alert>
                     )}
-            <Card className="shadow-sm mb-4">
+            <Card className="shadow-sm mb-4 mx-auto">
                 <Card.Header>
                     <Card.Title className="mb-0 text-primary fw-bold">{t('upload_csv_components')}</Card.Title> {/* Translated */}
                 </Card.Header>
-                <Card.Body>
+                <Card.Body className="d-flex justify-content-center align-items-center flex-column">
                     
                     <Tabs
                         activeKey={activeTab}
@@ -193,20 +193,7 @@ const CsvUploader: React.FC = () => {
                                                         </td>
                                                     </tr>
                                                 ))}
-                                                <tr>
-                                                    <td><strong>quantity</strong></td>
-                                                    <td>
-                                                        <Form.Select
-                                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleMappingChange('quantity', e.target.value)}
-                                                            value={selectedMapping['quantity'] || ''}
-                                                        >
-                                                            <option value="">{t('select_option')}</option> {/* Translated */}
-                                                            {csvHeaders.map(header => (
-                                                                <option key={header} value={header}>{header}</option>
-                                                            ))}
-                                                        </Form.Select>
-                                                    </td>
-                                                </tr>
+                                                
                                             </tbody>
                                         </Table>
                                     </div>
@@ -224,7 +211,7 @@ const CsvUploader: React.FC = () => {
                     </Tabs>
                 </Card.Body>
             </Card>
-        </Container>
+        </>
     );
 };
 

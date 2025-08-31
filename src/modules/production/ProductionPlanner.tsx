@@ -62,17 +62,17 @@ const ProductionPlanner: React.FC = () => {
     };
 
     return (
-        <Container className="my-4">
+        <>
             {status && (
                 <Alert variant={status.variant} onClose={() => setStatus(null)} dismissible className="mb-3">
                     {status.message}
                 </Alert>
             )}
-            <Card className="shadow-sm mb-4">
+            <Card className="shadow-sm mb-4 mx-auto">
                 <Card.Header>
                     <Card.Title className="mb-0 text-primary fw-bold">Üretim Planlama Modülü</Card.Title>
                 </Card.Header>
-                <Card.Body>
+                <Card.Body className="d-flex justify-content-center align-items-center flex-column">
                     <Form.Group className="mb-3">
                         <Form.Label className="fw-bold">PCB Seçin</Form.Label>
                         <Form.Select
@@ -103,7 +103,7 @@ const ProductionPlanner: React.FC = () => {
                     <Card.Header>
                         <Card.Title className="mb-0 text-primary fw-bold">Plan Detayları</Card.Title>
                     </Card.Header>
-                    <Card.Body>
+                    <Card.Body className="d-flex justify-content-center align-items-center flex-column">
                         <div className="table-responsive">
                             <Table striped bordered hover responsive>
                                 <thead>
@@ -143,7 +143,7 @@ const ProductionPlanner: React.FC = () => {
                     </Card.Body>
                 </Card>
             )}
-        </Container>
+        </>
     );
 };
 

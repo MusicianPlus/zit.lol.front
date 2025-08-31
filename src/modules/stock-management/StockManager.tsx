@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Table, Alert, Spinner, Button, Form, Modal, FormControl, InputGroup, Row, Col } from 'react-bootstrap';
-import { StockService, StockItem, NewStockPayload } from '../../api/stock'; // Import StockService and interfaces
+import stockApi from '../../api/stock'; // Import stockApi
+
+interface StockItem {
+    component_id: string;
+    quantity_on_hand: number;
+    component_name: string;
+    manufacturer_part_number: string;
+}
+
+interface NewStockPayload {
+    component_id: string;
+    quantity: number;
+}
 
 interface UpdateQuantities {
     [component_id: string]: number;
@@ -27,9 +39,9 @@ const StockManager: React.FC = () => {
     const fetchStock = async () => {
         try {
             setLoading(true);
-            const res = await StockService.getAllStock(); // Use StockService
-            setStock(res);
-            const initialQuantities: UpdateQuantities = res.reduce((acc, item) => {
+            const res = await stockApi.getAllStock(); // Use stockApi
+            setStock(res.data);
+            const initialQuantities: UpdateQuantities = res.data.reduce((acc, item) => {
                 acc[item.component_id] = item.quantity_on_hand;
                 return acc;
             }, {} as UpdateQuantities);
@@ -52,7 +64,7 @@ const StockManager: React.FC = () => {
                 return;
             }
 
-            const updatedItem = await StockService.updateStockQuantity(id, newQuantity); // Use StockService
+            const updatedItem = (await stockApi.updateStockQuantity(id, newQuantity)).data; // Use stockApi
             setUpdateQuantities(prevQuantities => ({
                 ...prevQuantities,
                 [id]: updatedItem.quantity_on_hand
@@ -79,7 +91,7 @@ const StockManager: React.FC = () => {
                 setError('Lütfen geçerli bir Component ID ve miktar girin.');
                 return;
             }
-            await StockService.addStock(newStock); // Use StockService
+            await stockApi.addStock(newStock.component_id, newStock.quantity); // Use stockApi
             setShowAddModal(false);
             setNewStock({ component_id: '', quantity: 0 });
             fetchStock();
@@ -93,7 +105,7 @@ const StockManager: React.FC = () => {
     const handleDeleteStock = async (component_id: string) => {
         if (window.confirm('Bu stok kalemini silmek istediğinizden emin misiniz?')) {
             try {
-                await StockService.deleteStock(component_id); // Use StockService
+                await stockApi.deleteStock(component_id); // Use stockApi
                 fetchStock();
                 setError(null);
                 setStatus({ message: 'Stok kalemi başarıyla silindi!', variant: 'success' });
@@ -113,20 +125,20 @@ const StockManager: React.FC = () => {
     }
 
     return (
-        <Container className="my-4">
+        <>
             {status && (
                 <Alert variant={status.variant} onClose={() => setStatus(null)} dismissible className="mb-3">
                     {status.message}
                 </Alert>
             )}
-            <Card className="shadow-sm mb-4">
+            <Card className="shadow-sm mb-4 mx-auto">
                 <Card.Header className="d-flex justify-content-between align-items-center">
                     <Card.Title className="mb-0 text-primary fw-bold">Stockman</Card.Title>
                     <Button variant="primary" onClick={() => setShowAddModal(true)} className="fw-bold">
                         Yeni Stok Ekle
                     </Button>
                 </Card.Header>
-                <Card.Body>
+                <Card.Body className="d-flex justify-content-center align-items-center flex-column">
                     <hr />
                     {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
                     
@@ -219,6 +231,8 @@ const StockManager: React.FC = () => {
                     </Form>
                 </Modal.Body>
             </Modal>
-        </Container>
+        </>
     );
 }
+
+export default StockManager;

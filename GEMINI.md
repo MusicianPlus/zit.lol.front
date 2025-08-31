@@ -1,6 +1,6 @@
 # GEMINI.md - Frontend Project Documentation for LLM
 
-This document provides a comprehensive overview of the frontend application, designed to be easily parsable and understood by a Large Language Model (LLM) for development and maintenance tasks. It focuses exclusively on the frontend's purpose, architecture, modularity, technology stack, conventions, and key file structures.
+This document provides a comprehensive and detailed overview of the frontend application, designed to be easily parsable and understood by a Large Language Model (LLM) for development and maintenance tasks. It focuses exclusively on the frontend's purpose, architecture, modularity, technology stack, conventions, and key file structures.
 
 ## 1. Project Overview (Frontend Specific)
 
@@ -10,55 +10,119 @@ This project's frontend is a Single-Page Application (SPA) built with React and 
 *   **User Interface:** Provides all visual and interactive elements for the ERP system.
 *   **Decoupled:** Operates independently from the backend, communicating via API calls.
 *   **Modern Tooling:** Utilizes React for UI development and Vite for a fast development experience and optimized builds.
+*   **Component-Based:** Built with a modular and reusable component architecture.
+*   **Internationalization (i18n):** Supports multiple languages through the use of `i18next`.
 
-## 2. Architecture (Frontend Specific)
+## 2. Technology Stack
 
-The frontend is the presentation layer of the three-tier architecture. It is a client-side application that runs in the user's web browser.
+*   **UI Library:** [React](https://reactjs.org/) 18.x
+*   **Build Tool:** [Vite](https://vitejs.dev/) 7.x
+*   **Routing:** [React Router](https://reactrouter.com/) 6.x
+*   **UI Framework:** [React Bootstrap](https://react-bootstrap.github.io/) 2.x
+*   **API Communication:** [Axios](https://axios-http.com/)
+*   **State Management:** React Hooks (`useState`, `useReducer`, `useContext`)
+*   **Internationalization (i18n):** [i18next](https://www.i18next.com/) and [react-i18next](https://react.i18next.com/)
+*   **Language:** [TypeScript](https://www.typescriptlang.org/)
 
-### 2.1. Frontend's Role
-*   **Technology:** Single-Page Application (SPA) built with **React** and **Vite**.
-*   **Interaction:** Communicates with the Backend API (Node.js/Express) to send user requests and receive data. It then renders this data to the user.
-*   **Routing:** Manages client-side routing to provide a seamless navigation experience without full page reloads.
+## 3. Project Structure
 
-## 3. Modularity and Extensibility (Frontend Specific)
+The `frontend/src` directory is the heart of the application and is organized as follows:
 
-The frontend is designed to be highly modular, mirroring the modular structure of the backend. Each backend module typically has a corresponding set of React components that provide the user interface for that specific domain.
+*   **`api/`**: Contains all the API service files that are responsible for making requests to the backend. Each file typically corresponds to a specific backend module (e.g., `auth.js`, `stock.js`, `pcb.ts`).
+*   **`assets/`**: Contains static assets such as images, logos, and fonts.
+*   **`components/`**: Contains reusable and shared components that are used across multiple modules. This includes common UI elements like buttons, modals, and layout components.
+    *   **`common/`**: A subdirectory for generic, reusable components (e.g., `ErrorBoundary.tsx`, `LoadingSpinner.tsx`, `PaginatedTable.tsx`).
+*   **`context/`**: Contains React context providers, which are used for managing global state. The `AuthContext.tsx` is a key part of this directory.
+*   **`modules/`**: This is the core of the application's modular architecture. Each subdirectory represents a specific feature or domain of the ERP system.
+    *   **`auth/`**: Contains components related to user authentication (e.g., `Login.tsx`).
+    *   **`bom-management/`**: Components for managing Bill of Materials (BOMs).
+    *   **`component-management/`**: Components for managing the master list of components.
+    *   **`importer/`**: Components for importing data, such as the `CsvUploader.tsx`.
+    *   **`pcb-management/`**: Components for managing Printed Circuit Boards (PCBs), such as `PcbManager.tsx`, `PcbCreator.tsx`, and `PcbMapper.tsx`.
+    *   **`procurement/`**: Components for managing procurement processes.
+    *   **`production/`**: Components for managing production planning, such as `ProductionPlanner.tsx`.
+    *   **`stock-management/`**: Components for managing stock and inventory, such as `StockManager.tsx`.
+*   **`routes/`**: This directory is not currently used, but it could be used in the future to define the application's routes in a more organized way.
+*   **`App.css`**: Global CSS styles for the application.
+*   **`App.tsx`**: The root component of the application.
+*   **`i18n.ts`**: The configuration file for `i18next`.
+*   **`index.css`**: The main CSS file that is imported into `main.tsx`.
+*   **`main.tsx`**: The entry point of the application.
 
-### 3.1. Frontend Module Structure
-Frontend modules are primarily composed of React components, often grouped logically within the `frontend/src/components` directory. These components are responsible for rendering specific views, forms, or interactive elements related to a particular ERP domain.
+## 4. Core Components
 
-### 3.2. Steps to Add a New Frontend Module
-To integrate a new feature or module into the frontend, follow these steps:
-1.  **Create Components:** Develop new React components within `frontend/src/components` that encapsulate the UI logic and presentation for the new module. These components will handle data display, user input, and interaction with the backend API.
-2.  **Define Route:** Add a new route definition in `frontend/src/components/MainLayout.jsx`. This route will map a specific URL path (e.g., `/new-module`) to the newly created component, making it accessible via the application's navigation.
-3.  **Update Navigation:** Integrate a link to the new module in the sidebar navigation, which is managed by `frontend/src/components/Sidebar.jsx`. This ensures users can easily access the new functionality.
+*   **`App.tsx`**: The root component that sets up the main router and wraps the application with the `AuthProvider` and `ErrorBoundary`.
+*   **`MainLayout.tsx`**: Defines the main layout of the application, including the `Sidebar` and the main content area. It also defines the routes for the different modules.
+*   **`Sidebar.tsx`**: The sidebar navigation component that provides links to the different modules.
+*   **`Login.tsx`**: The login component that handles user authentication.
 
-## 4. Frontend Details
+## 5. Modules
 
-### 4.1. Technology Stack
-*   **UI Library:** React
-*   **Build Tool:** Vite
-*   **Routing Library:** `react-router-dom`
+Each module in the `frontend/src/modules` directory is responsible for a specific feature of the ERP system. The modules are designed to be self-contained and independent of each other.
 
-### 4.2. Core Components
+### 5.1. Authentication (`auth`)
 
-*   **`frontend/src/App.jsx`**: The root component of the React application. It is responsible for setting up the main routing structure using `react-router-dom` and often handles global concerns like authentication context.
-*   **`frontend/src/components/MainLayout.jsx`**: Defines the overarching layout of the application. It typically includes the `Sidebar.jsx` and a content area where different module components are rendered based on the current route. This component ensures a consistent UI across the application.
-*   **`frontend/src/components/Sidebar.jsx`**: Manages the primary navigation menu. It contains links to various modules and sections of the ERP application. Any new module added to the system will require a corresponding link here.
-*   **Module Components**: Located within `frontend/src/components` (e.g., `StockManager.jsx`, `PcbManager.jsx`). These are specialized components that implement the user interface and logic for specific backend modules.
+*   **`Login.tsx`**: A form that allows users to log in to the application. It uses the `useAuth` hook to access the `login` function from the `AuthContext`.
 
-### 4.3. Routing
-*   **Library:** `react-router-dom` is used for declarative routing within the single-page application.
-*   **Route Definition:** Routes are primarily defined and managed within `frontend/src/App.jsx` and `frontend/src/components/MainLayout.jsx`. These files map URL paths to specific React components.
+### 5.2. Stock Management (`stock-management`)
 
-### 4.4. State Management
-*   **Current Approach:** The application primarily uses a combination of local component state (managed by React's `useState` and `useReducer` hooks) and props drilling for passing data down the component tree.
-*   **Future Considerations:** For more complex global state management needs, especially as the application grows, integrating dedicated state management libraries like Redux or MobX could be considered to centralize and streamline state logic.
+*   **`StockManager.tsx`**: A component that displays a table of stock items and allows users to add, update, and delete stock. It uses the `stockApi` service to make API requests to the backend.
 
-### 4.5. API Interaction
-*   The frontend communicates with the backend API via standard HTTP requests. While no specific library was mentioned in the `README.md`, it is common for React applications to use the built-in `fetch` API or a library like `axios` for making these requests.
+### 5.3. PCB Management (`pcb-management`)
 
-## 5. Building and Running (Frontend Specific)
+*   **`PcbManager.tsx`**: A component for managing PCBs and their associated BOMs.
+*   **`PcbCreator.tsx`**: A form for creating new PCBs.
+*   **`PcbMapper.tsx`**: A component for mapping BOM items to existing components in the inventory.
+
+### 5.4. Importer (`importer`)
+
+*   **`CsvUploader.tsx`**: A component that allows users to upload CSV files to import data into the system.
+
+### 5.5. Production (`production`)
+
+*   **`ProductionPlanner.tsx`**: A component for planning production orders based on the availability of components.
+
+## 6. State Management
+
+State management in the application is handled primarily through a combination of local component state (`useState`) and global state managed by React Context and the `useReducer` hook.
+
+### 6.1. Authentication State
+
+The authentication state is managed by the `AuthContext` (`frontend/src/context/AuthContext.tsx`). This context provides the `isLoggedIn`, `user`, and `isLoading` state, as well as the `login` and `logout` functions.
+
+The `AuthProvider` component uses a `useReducer` hook to manage the authentication state. The `authReducer` function handles the `LOGIN`, `LOGOUT`, and `SET_LOADING` actions.
+
+## 7. API Interaction
+
+The frontend communicates with the backend API using the `axios` library. The API service files are located in the `frontend/src/api` directory.
+
+Each API service file exports an object that contains a set of functions for making API requests to a specific backend module. For example, the `stockApi` object in `frontend/src/api/stock.js` provides functions for getting, adding, updating, and deleting stock.
+
+An `axios` instance is configured in `frontend/src/api/axiosInstance.js` to automatically include credentials (cookies) in all requests.
+
+## 8. Routing
+
+Routing is handled by the `react-router-dom` library. The main routes are defined in `frontend/src/components/MainLayout.tsx`.
+
+The application uses lazy loading with `React.lazy` to split the code for each module into separate chunks. This improves the initial loading time of the application.
+
+The `AuthRoutes` component in `frontend/src/App.tsx` handles the authentication-related routing. If the user is logged in, the `MainLayout` component is rendered. Otherwise, the user is redirected to the `/login` page.
+
+## 9. Styling
+
+Styling is handled by a combination of [React Bootstrap](https://react-bootstrap.github.io/) and custom CSS.
+
+*   **React Bootstrap:** The application uses React Bootstrap components for the main UI elements, such as buttons, forms, tables, and modals.
+*   **Custom CSS:** Custom CSS is used for fine-tuning the styles and for creating custom components. The main CSS files are `frontend/src/App.css` and `frontend/src/index.css`.
+*   **Theme:** The application uses a custom theme based on the `brite.min.css` file.
+
+## 10. Internationalization (i18n)
+
+Internationalization is handled by the `i18next` and `react-i18next` libraries. The configuration file is `frontend/src/i18n.ts`.
+
+The `useTranslation` hook is used in the components to access the translation function (`t`). The translation keys are defined in the `i18n.ts` file.
+
+## 11. Building and Running
 
 All commands for the frontend should be executed from within the `frontend/` directory.
 
@@ -66,35 +130,19 @@ All commands for the frontend should be executed from within the `frontend/` dir
     ```bash
     npm install
     ```
-    (This command installs all necessary Node.js packages and dependencies defined in `frontend/package.json`.)
 *   **Running (Development Mode):**
     ```bash
     npm run dev
     ```
-    (This command starts the Vite development server, which provides features like hot module replacement (HMR) for a fast development feedback loop. The application will typically be accessible at `http://localhost:5173` or a similar port.)
 *   **Building for Production:**
     ```bash
     npm run build
     ```
-    (This command compiles and bundles the React application for production deployment. The optimized static assets (HTML, CSS, JavaScript) will be generated in the `frontend/dist` directory, ready to be served by a web server.)
 
-## 6. Development Conventions (Frontend Specific)
+## 12. Development Conventions
 
 *   **Framework Adherence:** The frontend strictly follows React best practices and conventions.
 *   **Code Quality:** `eslint` is configured and used to enforce code style, identify potential issues, and maintain code consistency across the frontend codebase.
 *   **Component-Based Development:** Emphasis on creating reusable and modular React components.
-
-## 7. Important Files and Directories (Frontend Specific)
-
-This section highlights key files and directories within the `frontend/` project structure that are crucial for an LLM to understand the frontend's operational aspects and development environment.
-
-*   **`frontend/package.json`**: Defines project metadata, scripts specific to the frontend (e.g., `dev`, `build`), and lists all frontend dependencies.
-*   **`frontend/package-lock.json`**: Records the exact versions of frontend dependencies, ensuring consistent builds.
-*   **`frontend/vite.config.js`**: The configuration file for Vite, defining how the project is built, served, and optimized.
-*   **`frontend/src/main.jsx`**: The primary entry point for the React application. This file typically renders the root `App` component into the DOM.
-*   **`frontend/src/App.jsx`**: (Already described in Core Components) The main application component, handling global routing and structure.
-*   **`frontend/src/components/`**: This directory contains all reusable React components, including shared UI elements and module-specific components.
-*   **`frontend/src/assets/`**: A common directory for storing static assets like images, icons, or fonts that are directly imported into components.
-*   **`frontend/public/`**: Contains static assets that are served directly by the web server without being processed by Vite (e.g., `index.html`, `favicon.ico`).
-*   **`frontend/dist/`**: The output directory where the production-ready, bundled, and optimized frontend application files are placed after running `npm run build`.
-*   **`frontend/node_modules/`**: Contains all installed Node.js modules and libraries specifically for the frontend project.
+*   **File Naming:** Component files are named using PascalCase (e.g., `StockManager.tsx`). API service files are named using camelCase (e.g., `stockApi.js`).
+*   **Typing:** The application is written in TypeScript, and all props, state, and function parameters should be typed.

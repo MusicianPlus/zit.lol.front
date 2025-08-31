@@ -1,64 +1,58 @@
 import React from 'react';
-import { Nav, Offcanvas } from 'react-bootstrap';
+import { Nav, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
+import logo from '../assets/logo_transparent.png';
 
-// Logo dosyasını import etmeyi unutmayın
-import logo from '../assets/logo_transparent.png'; // components'tan src'ye çık, sonra assets'e gir
-
-interface SidebarProps {
-    show: boolean;
-    handleClose: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ show, handleClose }) => {
-    const { t } = useTranslation(); // Initialize useTranslation
+const Sidebar: React.FC = () => {
+    const { t } = useTranslation();
 
     return (
-        <Offcanvas show={show} onHide={handleClose} placement="start" scroll={true}>
-            <Offcanvas.Header closeButton>
-                {/* Eski Offcanvas.Title yerine img etiketi ekliyoruz */}
-                <img
-                    src={logo}
-                    alt="Zit lol Logo"
-                    className="img-fluid"
-                    style={{ maxWidth: '150px' }} // Logoyu daha küçük tutmak için isteğe bağlı stil
-                />
-            </Offcanvas.Header>
-            <Offcanvas.Body>
-                <Nav className="flex-column">
-                    <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
-                        <span>{t('pcb_management')}</span> {/* Translated */}
-                    </h6>
-                    <Nav.Link as={Link} to="/pcb-creator" onClick={handleClose}>
-                        {t('create_new_pcb')} {/* Translated */}
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/pcb-manager" onClick={handleClose}>
-                        {t('pcb_bom_management')} {/* Translated */}
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/pcb-mapper" onClick={handleClose}>
-                        {t('pcb_mapping')} {/* Translated */}
-                    </Nav.Link>
+        <div className="sidebar">
+            <div className="sidebar-header-card">
+                <div className="logo">
+                    <img src={logo} alt="Zit Base Logo" />
+                </div>
+            </div>
+            <Form.Control type="text" placeholder="Search..." className="mb-3" />
+            <Nav className="flex-column">
+                <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                    <span>{t('pcb_management')}</span>
+                </h6>
+                <Nav.Link as={Link} to="/pcb-creator">
+                    <i className="bi bi-plus-circle"></i>
+                    {t('create_new_pcb')}
+                </Nav.Link>
+                <Nav.Link as={Link} to="/pcb-manager">
+                    <i className="bi bi-card-list"></i>
+                    {t('pcb_bom_management')}
+                </Nav.Link>
+                <Nav.Link as={Link} to="/pcb-mapper">
+                    <i className="bi bi-arrows-angle-contract"></i>
+                    {t('pcb_mapping')}
+                </Nav.Link>
 
-                    <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
-                        <span>{t('inventory')}</span> {/* Translated */}
-                    </h6>
-                    <Nav.Link as={Link} to="/stock-manager" onClick={handleClose}>
-                        {t('inventory_management')} {/* Translated */}
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/csv-uploader" onClick={handleClose}>
-                        {t('upload_components_csv')} {/* Translated */}
-                    </Nav.Link>
+                <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                    <span>{t('inventory')}</span>
+                </h6>
+                <Nav.Link as={Link} to="/stock-manager">
+                    <i className="bi bi-box-seam"></i>
+                    {t('inventory_management')}
+                </Nav.Link>
+                <Nav.Link as={Link} to="/csv-uploader">
+                    <i className="bi bi-cloud-upload"></i>
+                    {t('upload_components_csv')}
+                </Nav.Link>
 
-                    <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
-                        <span>{t('production')}</span> {/* Translated */}
-                    </h6>
-                    <Nav.Link as={Link} to="/production-planner" onClick={handleClose}>
-                        {t('production_planning')} {/* Translated */}
-                    </Nav.Link>
-                </Nav>
-            </Offcanvas.Body>
-        </Offcanvas>
+                <h6 className="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                    <span>{t('production')}</span>
+                </h6>
+                <Nav.Link as={Link} to="/production-planner">
+                    <i className="bi bi-calendar-check"></i>
+                    {t('production_planning')}
+                </Nav.Link>
+            </Nav>
+        </div>
     );
 };
 

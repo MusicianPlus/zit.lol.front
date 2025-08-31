@@ -28,24 +28,23 @@ const App = () => {
 };
 
 const AuthRoutes = () => {
-    const { isLoggedIn, isLoading, handleLogin, handleLogout } = useAuth();
+    const { isLoggedIn, isLoading } = useAuth();
 
     if (isLoading) {
         return <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>Yükleniyor...</div>;
     }
 
     return (
-        <Routes>
-            <Route path="/login" element={<Login handleLogin={handleLogin} />} />
-            <Route
-                path="/*"
-                element={isLoggedIn ? (
-                    <MainLayout handleLogout={handleLogout} />
-                ) : (
-                    <Navigate to="/login" />
-                )}
-            />
-        </Routes>
+        isLoggedIn ? (
+            <Routes>
+                <Route path="/*" element={<MainLayout />} />
+            </Routes>
+        ) : (
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/*" element={<Navigate to="/login" />} />
+            </Routes>
+        )
     );
 };
 

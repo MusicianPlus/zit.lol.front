@@ -1,69 +1,77 @@
-import React, { useState, Suspense } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import { Container, Navbar, Button } from 'react-bootstrap';
+import React, { Suspense } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { Container, Dropdown } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 
 // MainLayout'un kendi içindeki bileşen import'ları
 const PcbManager = React.lazy(() => import('../modules/pcb-management/PcbManager.tsx'));
 const CsvUploader = React.lazy(() => import('../modules/importer/CsvUploader.tsx'));
 const PcbCreator = React.lazy(() => import('../modules/pcb-management/PcbCreator.tsx'));
-const StockManager = React.lazy(() => import('../modules/stock-management/StockManager.tsx'));
+const StockManager = React.lazy(() => import('../modules/stock-management/StockManager.tsx').then(module => ({ default: module.default })));
 const ProductionPlanner = React.lazy(() => import('../modules/production/ProductionPlanner.tsx'));
 const PcbMapper = React.lazy(() => import('../modules/pcb-management/PcbMapper.tsx'));
 import Sidebar from './Sidebar.tsx';
 import logo from '../assets/logo.png';
 
+const getPageTitle = (pathname: string) => {
+    switch (pathname) {
+        case '/':
+            return 'Dashboard';
+        case '/pcb-manager':
+            return 'PCB BOM Management';
+        case '/pcb-mapper':
+            return 'PCB Mapping';
+        case '/csv-uploader':
+            return 'Upload Components (CSV)';
+        case '/pcb-creator':
+            return 'Create New PCB';
+        case '/stock-manager':
+            return 'Inventory Management';
+        case '/production-planner':
+            return 'Production Planning';
+        default:
+            return 'ERP';
+    }
+};
+
 const MainLayout = () => {
-    const { handleLogout } = useAuth();
-    const { t } = useTranslation(); // Initialize useTranslation
+    const { logout, user } = useAuth();
+    const { t } = useTranslation();
+    const location = useLocation();
 
-    // Yan menünün açık/kapalı durumu, varsayılan olarak açık başlar
-    const [showSidebar, setShowSidebar] = useState<boolean>(true);
-
-    const handleShowSidebar = () => setShowSidebar(true);
-    const handleCloseSidebar = () => setShowSidebar(false);
-
-    // Anasayfa bileşeni (Home) artık MainLayout içinde tanımlanıyor
     const Home = () => (
         <div className="text-center">
-                <img
-                    src={logo}
-                    alt="Zit lol Logo"
-                    className="img-fluid"
-                    style={{ maxWidth: '150px' }} // Logoyu daha küçük tutmak için isteğe bağlı stil
-                />
-            <h1>{t('welcome')}</h1> {/* Translated */}
-            <p>{t('select_action')}</p> {/* Translated */}
-            {/* Çıkış butonu */}
-            <Button variant="danger" onClick={handleLogout} className="mt-3">
-                {t('logout')} {/* Translated */}
-            </Button>
+            <img
+                src={logo}
+                alt="Zit Base Logo"
+                className="img-fluid"
+                style={{ maxWidth: '150px' }}
+            />
+            <h1>{t('welcome')}</h1>
+            <p>{t('select_action')}</p>
         </div>
     );
 
     return (
-        <>
-            {/* Navbar - Sadece menü butonu ve marka adı */}
-            <Navbar fixed="top" className="bg-primary navbar-dark shadow-sm">
-                <Container fluid>
-                    {/* Tek menü butonu */}
-                    <Button variant="primary" onClick={handleShowSidebar} className="me-2">
-                        <i className="bi bi-list"></i> {/* Bootstrap Icons kullanılıyorsa */}
-                    </Button>
-                    <Navbar.Brand as={Link} to="/">Zit Base</Navbar.Brand>
-                </Container>
-            </Navbar>
-
-            {/* Yan menü bileşeni */}
-            <Sidebar show={showSidebar} handleClose={handleCloseSidebar} />
-
-            {/* Ana İçerik Alanı */}
-            <div className="main-content" style={{ marginTop: '5rem' }}>
-                <Container>
-                    <Suspense fallback={<div>{t('loading')}</div>}> {/* Translated */}
+        <div className="main-layout">
+            <Sidebar />
+            <div className="main-content">
+                <header className="header">
+                    <h2>{getPageTitle(location.pathname)}</h2>
+                    <Dropdown as="div" className="user-menu">
+                        <Dropdown.Toggle as="a" className="btn btn-link">
+                            <i className="bi bi-person-circle"></i>
+                            <span className="ms-2">{user?.username}</span>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu align="end">
+                            <Dropdown.Item onClick={logout}>{t('logout')}</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </header>
+                <div className="page-content page-container">
+                    <Suspense fallback={<div>{t('loading')}</div>}>
                         <Routes>
-                            {/* Tüm ana uygulama rotaları */}
                             <Route path="/" element={<Home />} />
                             <Route path="/pcb-manager" element={<PcbManager />} />
                             <Route path="/pcb-mapper" element={<PcbMapper />} />
@@ -73,9 +81,9 @@ const MainLayout = () => {
                             <Route path="/production-planner" element={<ProductionPlanner />} />
                         </Routes>
                     </Suspense>
-                </Container>
+                </div>
             </div>
-        </>
+        </div>
     );
 };
 

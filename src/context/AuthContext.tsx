@@ -1,99 +1,144 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useReducer, useEffect, useContext, ReactNode } from 'react';
+import authApi from '../api/auth'; // Bir önceki adımda oluşturduğunuz dosya
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// --- Tip Tanımlamaları (TypeScript'in Gücü) ---
 
 /**
- * Defines the shape of the authentication context.
- * @interface AuthContextType
+ * API'den dönmesini beklediğimiz kullanıcı nesnesinin yapısı.
+ * Kendi projenize göre (örn: name, roles) genişletebilirsiniz.
  */
-interface AuthContextType {
-    /**
-     * Indicates if the user is currently logged in.
-     */
-    isLoggedIn: boolean;
-    /**
-     * Indicates if the authentication status is currently being loaded.
-     */
-    isLoading: boolean;
-    /**
-     * Function to call when a user successfully logs in.
-     */
-    handleLogin: () => void;
-    /**
-     * Function to call to log out the current user.
-     */
-    handleLogout: () => Promise<void>;
+interface User {
+    id: string;
+    username: string;
+    email: string;
 }
 
 /**
- * React Context for managing authentication state.
- * @type {React.Context<AuthContextType | null>}
+ * Reducer tarafından yönetilecek olan state'in yapısı.
  */
-const AuthContext = createContext<AuthContextType | null>(null);
+interface AuthState {
+    isLoggedIn: boolean;
+    user: User | null;
+    isLoading: boolean;
+}
 
 /**
- * Provides authentication state and functions to its children components.
- * It handles checking the user's login status on mount and provides login/logout functionalities.
- * @param {object} props - The component props.
- * @param {React.ReactNode} props.children - The child components to be rendered within the provider.
- * @returns {React.FC<{ children: React.ReactNode }>}
+ * Reducer'a gönderilebilecek action'ların tipleri ve payload'ları.
  */
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+type AuthAction =
+    | { type: 'LOGIN'; payload: User }
+    | { type: 'LOGOUT' }
+    | { type: 'SET_LOADING'; payload: boolean };
+
+/**
+ * Context aracılığıyla bileşenlere sağlanacak olan değerlerin yapısı.
+ */
+interface AuthContextType extends AuthState {
+    login: (username: string, password, rememberMe: boolean) => Promise<{ success: boolean; message?: string }>;
+    logout: () => Promise<{ success: boolean; message?: string }>;
+}
+
+// --- Reducer Fonksiyonu ---
+
+const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+    switch (action.type) {
+        case 'LOGIN':
+            return {
+                ...state,
+                isLoggedIn: true,
+                user: action.payload,
+            };
+        case 'LOGOUT':
+            return {
+                ...state,
+                isLoggedIn: false,
+                user: null,
+            };
+        case 'SET_LOADING':
+            return {
+                ...state,
+                isLoading: action.payload,
+            };
+        default:
+            return state;
+    }
+};
+
+// --- Context ve Provider ---
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const initialState: AuthState = {
+        isLoggedIn: false,
+        user: null,
+        isLoading: true, // Uygulama ilk açıldığında oturumu kontrol edeceğimiz için true
+    };
+
+    const [state, dispatch] = useReducer(authReducer, initialState);
 
     useEffect(() => {
         const checkAuthStatus = async () => {
+            dispatch({ type: 'SET_LOADING', payload: true });
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/auth/verify`);
-                if (response.status === 200) {
-                    setIsLoggedIn(true);
+                const response = await authApi.verify();
+                if (response.status === 200 && response.data.user) {
+                    dispatch({ type: 'LOGIN', payload: response.data.user });
                 } else {
-                    setIsLoggedIn(false);
+                    dispatch({ type: 'LOGOUT' });
                 }
             } catch (error) {
                 console.error('Oturum kontrol hatası:', error);
-                setIsLoggedIn(false);
+                dispatch({ type: 'LOGOUT' });
             } finally {
-                setIsLoading(false);
+                dispatch({ type: 'SET_LOADING', payload: false });
             }
         };
 
         checkAuthStatus();
     }, []);
 
-    const handleLogin = () => {
-        setIsLoggedIn(true);
+    const login = async (username, password, rememberMe) => {
+        try {
+            const response = await authApi.login(username, password, rememberMe);
+            if (response.status === 200 && response.data.user) {
+                dispatch({ type: 'LOGIN', payload: response.data.user });
+                return { success: true };
+            }
+            return { success: false, message: response.data.message || 'Giriş bilgileri hatalı.' };
+        } catch (error: any) {
+            return { success: false, message: error.response?.data?.message || 'Giriş sırasında bir hata oluştu.' };
+        }
     };
 
-    const handleLogout = async () => {
+    const logout = async () => {
         try {
-            await axios.post(`${API_BASE_URL}/api/auth/logout`);
-            setIsLoggedIn(false);
-            // Optionally redirect to login page after logout
-            // window.location.href = '/login';
-        } catch (error) {
+            await authApi.logout();
+            dispatch({ type: 'LOGOUT' });
+            return { success: true };
+        } catch (error: any) {
             console.error('Çıkış hatası:', error);
+             // Çıkış başarısız olsa bile client tarafında oturumu kapat
+            dispatch({ type: 'LOGOUT' });
+            return { success: false, message: error.response?.data?.message || 'Çıkış sırasında bir hata oluştu.' };
         }
     };
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, isLoading, handleLogin, handleLogout }}>
+        <AuthContext.Provider value={{ ...state, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
 /**
- * Custom hook to consume the authentication context.
- * Throws an error if used outside of an AuthProvider.
- * @returns {AuthContextType} The authentication context values.
- * @throws {Error} If useAuth is not used within an AuthProvider.
+ * AuthContext'e kolay erişim sağlayan özel bir hook.
+ * Bu hook, bir AuthProvider içinde kullanılmalıdır.
+ * @returns {AuthContextType} - Kimlik doğrulama state'i ve fonksiyonları.
  */
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
-    if (context === null) {
+    if (!context) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;

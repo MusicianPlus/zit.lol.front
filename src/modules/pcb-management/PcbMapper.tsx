@@ -123,12 +123,12 @@ const PcbMapper: React.FC = () => {
     };
 
     return (
-        <Container className="my-4">
-            <Card className="shadow-sm mb-4">
+        <>
+            <Card className="shadow-sm mb-4 mx-auto">
                 <Card.Header>
                     <h5 className="mb-0 text-primary fw-bold">PCB BOM Eşleştirme</h5>
                 </Card.Header>
-                <Card.Body>
+                <Card.Body className="d-flex justify-content-center align-items-center flex-column">
                     {status && (
                         <Alert variant={status.includes('hata') ? 'danger' : 'success'}>
                             {status}
@@ -195,7 +195,7 @@ const PcbMapper: React.FC = () => {
                     </Tabs>
                 </Card.Body>
             </Card>
-        </Container>
+        </>
     );
 };
 

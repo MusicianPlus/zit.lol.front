@@ -39,17 +39,17 @@ const PcbCreator: React.FC = () => {
     };
 
     return (
-        <Container className="my-4">
+        <>
                     {status && (
                         <Alert variant={status.variant} onClose={() => setStatus(null)} dismissible className="mb-3">
                             {status.message}
                         </Alert>
                     )}
-            <Card className="shadow-sm mb-4">
+            <Card className="shadow-sm mb-4 mx-auto">
                 <Card.Header>
                     <Card.Title className="mb-0 text-primary fw-bold">{t('create_new_pcb_title')}</Card.Title> {/* Translated */}
                 </Card.Header>
-                <Card.Body>
+                <Card.Body className="d-flex justify-content-center align-items-center flex-column">
 
                     <Form.Group className="mb-3">
                         <Form.Label>{t('pcb_name')}</Form.Label> {/* Translated */}
@@ -72,7 +72,7 @@ const PcbCreator: React.FC = () => {
                     )}
                 </Card.Body>
             </Card>
-        </Container>
+        </>
     );
 };
 

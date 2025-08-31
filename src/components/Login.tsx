@@ -1,19 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
-<<<<<<< HEAD:src/components/Login.tsx
-import { useAuth } from '../context/AuthContext.tsx';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-const Login = () => {
-    const [username, setUsername] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [rememberMe, setRememberMe] = useState<boolean>(false); // Yeni state: "beni hatırla"
-    const [error, setError] = useState<string>('');
-    const navigate = useNavigate();
-    const { handleLogin } = useAuth();
-=======
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -22,45 +9,22 @@ const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const { login } = useAuth();
->>>>>>> 8b6b7e79a6ab99acbf35b8fbd4bee9a2ecc91f3d:src/components/Login.jsx
+    const { login, isLoggedIn } = useAuth();
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            navigate('/');
+        }
+    }, [isLoggedIn, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
         const result = await login(username, password, rememberMe);
-        try {
-            // Backend'deki yeni API uç noktasına istek gönder
-            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
 
-                credentials: 'include', // Include credentials
-                body: JSON.stringify({ username, password, rememberMe }), // "beni hatırla" durumunu da gönder
-            });
-
-<<<<<<< HEAD:src/components/Login.tsx
-            const data = await response.json();
-
-            if (response.ok) {
-                // Başarılı giriş
-                handleLogin(); // App.jsx'e token'ı ilet
-                navigate('/');
-            } else {
-                setError(data.message || 'Giriş başarısız oldu.');
-            }
-        } catch (err: any) {
-            console.error('Giriş hatası:', err);
-            setError('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.');
-=======
-        if (result.success) {
-            navigate('/');
-        } else {
-            setError(result.message);
->>>>>>> 8b6b7e79a6ab99acbf35b8fbd4bee9a2ecc91f3d:src/components/Login.jsx
+        if (!result.success) {
+            setError(result.message || 'Giriş başarısız oldu.');
         }
     };
 

@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
+    "compman": "file:..",
     "i18next-browser-languagedetector": "^8.2.0",
     "react": "^19.1.1",
     "react-bootstrap": "^2.10.10",
