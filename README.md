@@ -1,6 +1,6 @@
-zit.lol.front
+## zit.lol.front
 
-This document provides a comprehensive and detailed overview of the frontend application, designed to be easily parsable and understood by a Large Language Model (LLM) for development and maintenance tasks. It focuses exclusively on the frontend's purpose, architecture, modularity, technology stack, conventions, and key file structures.
+This document provides a comprehensive and detailed overview of the frontend application. It focuses exclusively on the frontend's purpose, architecture, modularity, technology stack, conventions, and key file structures.
 
 ## 1. Project Overview (Frontend Specific)
 
